@@ -349,6 +349,8 @@ const analytics = getAnalytics(app);
             </div>
 
             <form action="https://formspree.io/f/moevvbod" method="POST" class="bg-white p-8 md:p-10 rounded-3xl card-shadow border border-gray-100 space-y-6">
+                <!-- Custom Redirect Fallback -->
+                <input type="hidden" name="_next" value="https://gawyntgg.github.io/Thanks/">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="md:col-span-2">
@@ -1099,6 +1101,44 @@ const analytics = getAnalytics(app);
             
             renderCalendar();
             initAuth();
+
+            // Formspree AJAX Submission and Instant Redirect
+            const contactForm = document.querySelector('form[action="https://formspree.io/f/moevvbod"]');
+            if (contactForm) {
+                contactForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const submitBtn = contactForm.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.textContent;
+                    submitBtn.textContent = 'Sending Request...';
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-75', 'cursor-not-allowed');
+
+                    try {
+                        const response = await fetch(contactForm.action, {
+                            method: contactForm.method,
+                            body: new FormData(contactForm),
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            window.location.href = "https://gawyntgg.github.io/Thanks/";
+                        } else {
+                            showToast("Error sending request. Please try again.", "error");
+                            submitBtn.textContent = originalBtnText;
+                            submitBtn.disabled = false;
+                            submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                        }
+                    } catch (error) {
+                        showToast("Network error. Please try again.", "error");
+                        submitBtn.textContent = originalBtnText;
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+                    }
+                });
+            }
         });
 
     </script>
