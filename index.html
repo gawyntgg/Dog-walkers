@@ -305,6 +305,40 @@
             <form action="https://formspree.io/f/moevvbod" method="POST" class="bg-white p-8 md:p-10 rounded-3xl card-shadow border border-gray-100 space-y-6">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Select Plan *</label>
+                        <select name="Plan" required class="modern-input bg-white">
+                            <option value="" disabled selected>Choose a plan...</option>
+                            <option value="Weekly Plan">Weekly Plan</option>
+                            <option value="Monthly Plan">Monthly Plan</option>
+                            <option value="Single Walk">Single Walk</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Preferred Date *</label>
+                        <input type="date" name="Date" required class="modern-input bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Preferred Time *</label>
+                        <input type="time" name="Time" required class="modern-input bg-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Payment Method *</label>
+                        <select name="Payment Method" required class="modern-input bg-white">
+                            <option value="" disabled selected>Choose payment method...</option>
+                            <option value="Tap to Pay">Tap to Pay</option>
+                            <option value="E-transfer">E-transfer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">Pet Name *</label>
                         <input type="text" name="Pet Name" required class="modern-input" placeholder="e.g. Max">
@@ -768,6 +802,13 @@
                             if(instructionsArea) {
                                 instructionsArea.value = `I would like to request the ${formatTimeDisplay(time)} slot on ${dateStr}.`;
                             }
+                            
+                            // Auto-fill new date and time inputs
+                            const dateInput = document.querySelector('input[name="Date"]');
+                            if(dateInput) dateInput.value = dateStr;
+                            
+                            const timeInput = document.querySelector('input[name="Time"]');
+                            if(timeInput) timeInput.value = time;
                         };
                         slotDiv.appendChild(bookBtn);
                     }
