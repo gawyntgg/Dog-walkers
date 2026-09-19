@@ -456,6 +456,13 @@
     <div id="toast-container"></div>
 
     <script type="module">
+        // --- Added: Overriding browser scroll restoration to prevent auto-scrolling down on load ---
+        if ('scrollRestoration' in history) {
+            history.scrollRestoration = 'manual';
+        }
+        window.scrollTo(0, 0);
+        // -----------------------------------------------------------------------------------------
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -590,18 +597,16 @@
 
             const newTimes = [...currentTimes, timeStr].sort();
             
-            if (AppState.isLocalMode) {
-                AppState.scheduleData[dateStr] = newTimes;
-                localStorage.setItem('premium_walks_schedule', JSON.stringify(AppState.scheduleData));
-                renderCalendar();
-                if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
-                showToast("Time slot added (Local mode).", "success");
-                return;
-            }
-
+            // FIX: Removed the 'if(AppState.isLocalMode)' block that was preventing writing to Firebase
+            // Now it will ALWAYS try to push to the database, even if it threw an error on load.
             try {
                 await setDoc(getDocRef(dateStr), { times: newTimes });
                 showToast("Time slot added.", "success");
+                
+                // Immediately update the local state for better responsiveness
+                AppState.scheduleData[dateStr] = newTimes;
+                renderCalendar();
+                if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
             } catch (e) {
                 console.error("Firestore Write Error:", e);
                 AppState.isLocalMode = true;
@@ -619,19 +624,7 @@
             const currentTimes = AppState.scheduleData[dateStr] || [];
             const newTimes = currentTimes.filter(t => t !== timeStr);
 
-            if (AppState.isLocalMode) {
-                if (newTimes.length === 0) {
-                    delete AppState.scheduleData[dateStr];
-                } else {
-                    AppState.scheduleData[dateStr] = newTimes;
-                }
-                localStorage.setItem('premium_walks_schedule', JSON.stringify(AppState.scheduleData));
-                renderCalendar();
-                if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
-                showToast("Time slot removed (Local mode).", "success");
-                return;
-            }
-
+            // FIX: Removed the 'if(AppState.isLocalMode)' block that was preventing DB deletion.
             try {
                 if (newTimes.length === 0) {
                     await setDoc(getDocRef(dateStr), { times: [] });
@@ -639,6 +632,15 @@
                     await setDoc(getDocRef(dateStr), { times: newTimes });
                 }
                 showToast("Time slot removed.", "success");
+                
+                // Immediately update the local state for better responsiveness
+                if (newTimes.length === 0) {
+                    delete AppState.scheduleData[dateStr];
+                } else {
+                    AppState.scheduleData[dateStr] = newTimes;
+                }
+                renderCalendar();
+                if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
             } catch (e) {
                 console.error("Firestore Write Error:", e);
                 AppState.isLocalMode = true;
@@ -1027,7 +1029,6 @@
                 
                 saveSlotToDB(dateStr, timeStr);
                 DOM.dashTimeInput.value = ''; // clear time field for easy multi-entry
-                showToast("Time added to calendar!", "success");
             });
         }
 
@@ -1047,8 +1048,10 @@
 
         // Initialize App & Run force-scroll to top
         document.addEventListener('DOMContentLoaded', () => {
-            // Scroll to the very top on load
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            // FIX: Double-enforcing immediate jump to the top on load
+            window.scrollTo(0, 0);
+            setTimeout(() => window.scrollTo(0, 0), 10);
+            setTimeout(() => window.scrollTo(0, 0), 100);
 
             DOM.adminModal.querySelector('div').classList.add('scale-95', 'opacity-0', 'transition-all', 'duration-200');
             DOM.dayModal.querySelector('div').classList.add('scale-95', 'opacity-0', 'transition-all', 'duration-200');
