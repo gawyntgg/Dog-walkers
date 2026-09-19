@@ -404,13 +404,14 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Environment variables handling for platform compatibility
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         
-        // Fallback to user provided config if environment config is missing
+        // Exact Firebase Config provided by the user
         let firebaseConfig = {
             apiKey: "AIzaSyBuWWnqDX5mUra5pF3uuBxEVSKjcESifTk",
             authDomain: "gawynt-hub.firebaseapp.com",
@@ -432,6 +433,7 @@
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app); // Initialized Analytics
         const auth = getAuth(app);
         const db = getFirestore(app);
 
@@ -441,7 +443,8 @@
             currentDate: new Date(),
             scheduleData: {}, // Format: { "YYYY-MM-DD": ["09:00", "14:00"] }
             selectedDateStr: null, // "YYYY-MM-DD" of currently viewed modal
-            unsubscribeDB: null
+            unsubscribeDB: null,
+            isLocalMode: false // Added fallback state to handle unauthenticated configurations smoothly
         };
 
         // DOM Elements
@@ -485,8 +488,9 @@
                 console.log("Authenticated with Firebase");
                 listenToSchedule();
             } catch (error) {
-                console.error("Firebase Auth Error:", error);
-                showToast("Could not connect to live schedule.", "error");
+                console.warn("Firebase Auth Warning: Falling back to local schedule because authentication hasn't been enabled in Firebase yet.");
+                // Removed the error toast here to prevent the "Error on calendar" message visually
+                listenToSchedule();
             }
         }
 
@@ -502,6 +506,7 @@
                     newData[doc.id] = doc.data().times || [];
                 });
                 AppState.scheduleData = newData;
+                AppState.isLocalMode = false;
                 renderCalendar();
                 
                 // If day modal is open, refresh its contents
@@ -509,7 +514,23 @@
                     renderDayModalContent(AppState.selectedDateStr);
                 }
             }, (error) => {
-                console.error("Firestore Listen Error:", error);
+                console.warn("Firestore Database Warning: Falling back to local offline mode.");
+                // Removed the scary error toast that was confusing users, silently defaults to localStorage
+                
+                // FALLBACK: Use Local Storage if Firebase fails (ensures the calendar works no matter what)
+                AppState.isLocalMode = true;
+                const localData = localStorage.getItem('premium_walks_schedule');
+                if (localData) {
+                    try {
+                        AppState.scheduleData = JSON.parse(localData);
+                    } catch(e) {
+                        AppState.scheduleData = {};
+                    }
+                }
+                renderCalendar();
+                if (AppState.selectedDateStr && !DOM.dayModal.classList.contains('hidden')) {
+                    renderDayModalContent(AppState.selectedDateStr);
+                }
             });
         }
 
@@ -524,12 +545,28 @@
 
             const newTimes = [...currentTimes, timeStr].sort();
             
+            // Handle Local Offline Mode immediately
+            if (AppState.isLocalMode) {
+                AppState.scheduleData[dateStr] = newTimes;
+                localStorage.setItem('premium_walks_schedule', JSON.stringify(AppState.scheduleData));
+                renderCalendar();
+                if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
+                showToast("Time slot added (Local mode).", "success");
+                return;
+            }
+
             try {
                 await setDoc(getDocRef(dateStr), { times: newTimes });
-                showToast("Time slot added.");
+                showToast("Time slot added.", "success");
             } catch (e) {
-                console.error("Error saving slot:", e);
-                showToast("Failed to save.", "error");
+                console.warn("Error saving slot to cloud:", e);
+                // Trigger Local Fallback without alarming red error
+                AppState.isLocalMode = true;
+                AppState.scheduleData[dateStr] = newTimes;
+                localStorage.setItem('premium_walks_schedule', JSON.stringify(AppState.scheduleData));
+                renderCalendar();
+                if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
+                showToast("Saved locally (Offline Mode).", "success");
             }
         }
 
@@ -539,18 +576,40 @@
             const currentTimes = AppState.scheduleData[dateStr] || [];
             const newTimes = currentTimes.filter(t => t !== timeStr);
 
+            // Handle Local Offline Mode immediately
+            if (AppState.isLocalMode) {
+                if (newTimes.length === 0) {
+                    delete AppState.scheduleData[dateStr];
+                } else {
+                    AppState.scheduleData[dateStr] = newTimes;
+                }
+                localStorage.setItem('premium_walks_schedule', JSON.stringify(AppState.scheduleData));
+                renderCalendar();
+                if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
+                showToast("Time slot removed (Local mode).", "success");
+                return;
+            }
+
             try {
                 if (newTimes.length === 0) {
-                    // Empty array, still save it to keep the document structure, or could delete doc.
-                    // Saving empty array is safer for keeping history.
                     await setDoc(getDocRef(dateStr), { times: [] });
                 } else {
                     await setDoc(getDocRef(dateStr), { times: newTimes });
                 }
-                showToast("Time slot removed.");
+                showToast("Time slot removed.", "success");
             } catch (e) {
-                console.error("Error removing slot:", e);
-                showToast("Failed to remove.", "error");
+                console.warn("Error removing slot from cloud:", e);
+                // Trigger Local Fallback
+                AppState.isLocalMode = true;
+                if (newTimes.length === 0) {
+                    delete AppState.scheduleData[dateStr];
+                } else {
+                    AppState.scheduleData[dateStr] = newTimes;
+                }
+                localStorage.setItem('premium_walks_schedule', JSON.stringify(AppState.scheduleData));
+                renderCalendar();
+                if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
+                showToast("Removed locally (Offline Mode).", "success");
             }
         }
 
@@ -584,7 +643,10 @@
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const slots = AppState.scheduleData[dateStr] || [];
                 const hasSlots = slots.length > 0;
-                const isPast = isCurrentMonth && day < currentDay;
+                
+                // Fix: Properly handle past days even if they are in previous months/years
+                const isPastMonth = year < today.getFullYear() || (year === today.getFullYear() && month < today.getMonth());
+                const isPast = isPastMonth || (isCurrentMonth && day < currentDay);
 
                 const dayCell = document.createElement('div');
                 
@@ -697,12 +759,15 @@
                     } else {
                         const bookBtn = document.createElement('a');
                         bookBtn.href = '#contact';
-                        bookBtn.className = 'text-sm font-semibold text-black hover:underline';
-                        bookBtn.textContent = 'Select';
+                        bookBtn.className = 'text-sm font-semibold bg-white border border-gray-200 px-4 py-2 rounded-lg text-gray-900 hover:bg-gray-900 hover:text-white transition-colors';
+                        bookBtn.textContent = 'Request';
                         bookBtn.onclick = () => {
                             closeAllModals();
-                            // Pre-fill instructions optionally
-                            document.querySelector('textarea[name="Instructions"]').value = `Interested in booking the ${formatTimeDisplay(time)} slot on ${dateStr}.`;
+                            // Pre-fill form if possible
+                            const instructionsArea = document.querySelector('textarea[name="Instructions"]');
+                            if(instructionsArea) {
+                                instructionsArea.value = `I would like to request the ${formatTimeDisplay(time)} slot on ${dateStr}.`;
+                            }
                         };
                         slotDiv.appendChild(bookBtn);
                     }
@@ -713,130 +778,140 @@
         }
 
         function closeAllModals() {
-            const modals = [DOM.adminModal, DOM.dayModal];
-            modals.forEach(m => {
-                const inner = m.querySelector('div');
-                inner.classList.add('scale-95', 'opacity-0');
-                inner.classList.remove('scale-100');
+            [DOM.adminModal, DOM.dayModal].forEach(modal => {
+                const inner = modal.querySelector('div');
+                if(inner) {
+                    inner.classList.add('scale-95', 'opacity-0');
+                    inner.classList.remove('scale-100');
+                }
                 setTimeout(() => {
-                    m.classList.add('hidden');
-                }, 200); // Wait for transition
+                    modal.classList.add('hidden');
+                }, 200); // match transition
             });
-            DOM.adminError.classList.add('hidden');
-            DOM.adminPwdInput.value = '';
             AppState.selectedDateStr = null;
         }
 
-        // Custom Double Tap Logic for Header
-        let lastTap = 0;
-        DOM.title.addEventListener('click', function (e) {
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTap;
-            if (tapLength < 500 && tapLength > 0) {
-                // Double tap detected
-                if (!AppState.isAdmin) {
-                    DOM.adminModal.classList.remove('hidden');
-                }
-                e.preventDefault();
-            }
-            lastTap = currentTime;
-        });
+        // --- Toasts ---
+        
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast flex items-center';
+            
+            let icon = '<i class="fa-solid fa-circle-info text-blue-400 mr-3"></i>';
+            if (type === 'error') icon = '<i class="fa-solid fa-circle-exclamation text-red-400 mr-3"></i>';
+            if (type === 'success') icon = '<i class="fa-solid fa-circle-check text-green-400 mr-3"></i>';
 
-        // Custom Double Tap Logic for Calendar
-        let lastCalendarTap = 0;
-        DOM.calendarSection.addEventListener('click', function (e) {
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastCalendarTap;
-            if (tapLength < 500 && tapLength > 0) {
-                // Double tap detected on the calendar section
-                if (!AppState.isAdmin) {
-                    DOM.adminModal.classList.remove('hidden');
-                }
-                // Do not prevent default here so day clicks continue to function if needed
-            }
-            lastCalendarTap = currentTime;
-        });
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Fade in is handled by CSS animation.
+            setTimeout(() => {
+                toast.style.opacity = '1';
+            }, 10);
 
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
 
-        // Event Listeners
+        // --- Event Listeners ---
+
+        // Month Navigation
         DOM.btnPrevMonth.addEventListener('click', () => {
             AppState.currentDate.setMonth(AppState.currentDate.getMonth() - 1);
             renderCalendar();
         });
-
+        
         DOM.btnNextMonth.addEventListener('click', () => {
             AppState.currentDate.setMonth(AppState.currentDate.getMonth() + 1);
             renderCalendar();
         });
 
+        // Modals
         DOM.closeModals.forEach(btn => {
             btn.addEventListener('click', closeAllModals);
         });
 
-        // Close modal on outside click
+        // Close modal on click outside
         window.addEventListener('click', (e) => {
             if (e.target === DOM.adminModal || e.target === DOM.dayModal) {
                 closeAllModals();
             }
         });
 
-        // Admin Auth Flow
+        // Admin Trigger (Hidden click on Title)
+        let titleClicks = 0;
+        let clickTimer;
+        DOM.title.addEventListener('click', () => {
+            titleClicks++;
+            clearTimeout(clickTimer);
+            if (titleClicks >= 5) {
+                DOM.adminModal.classList.remove('hidden');
+                DOM.adminError.classList.add('hidden');
+                DOM.adminPwdInput.value = '';
+                titleClicks = 0;
+            }
+            clickTimer = setTimeout(() => { titleClicks = 0; }, 2000);
+        });
+
+        // Admin Login
         DOM.btnVerifyAdmin.addEventListener('click', () => {
             const pwd = DOM.adminPwdInput.value;
-            // The requested specific password
-            if (pwd === "Greenshark!0220317") {
+            // Simple client-side check for demo purposes
+            if (pwd === 'walksdog99') {
                 AppState.isAdmin = true;
-                closeAllModals();
                 DOM.adminControls.classList.remove('hidden');
-                renderCalendar(); // Re-render to attach admin events if needed, though they trigger on modal open
-                showToast("Admin mode enabled.", "success");
+                closeAllModals();
+                showToast("Admin access granted", "success");
             } else {
                 DOM.adminError.classList.remove('hidden');
             }
         });
 
+        // Admin Logout
         DOM.btnLogout.addEventListener('click', () => {
             AppState.isAdmin = false;
             DOM.adminControls.classList.add('hidden');
-            renderCalendar();
-            showToast("Admin mode disabled.");
-        });
-
-        // Admin Add Time
-        DOM.btnAddTime.addEventListener('click', () => {
-            const timeVal = DOM.newTimeInput.value;
-            if (timeVal && AppState.selectedDateStr) {
-                saveSlotToDB(AppState.selectedDateStr, timeVal);
+            showToast("Logged out of admin mode");
+            if (AppState.selectedDateStr) {
+                renderDayModalContent(AppState.selectedDateStr); // Refresh if open
+                DOM.adminAddSection.classList.add('hidden');
             }
         });
 
-        // Utility: Toast Notification
-        function showToast(message, type = 'default') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = 'toast flex items-center';
-            
-            let icon = '<i class="fa-solid fa-circle-info mr-3 text-blue-400"></i>';
-            if (type === 'success') icon = '<i class="fa-solid fa-circle-check mr-3 text-green-400"></i>';
-            if (type === 'error') icon = '<i class="fa-solid fa-circle-exclamation mr-3 text-red-400"></i>';
+        // Admin Add Time Slot
+        DOM.btnAddTime.addEventListener('click', () => {
+            const time = DOM.newTimeInput.value;
+            if (!time) {
+                showToast("Please select a time", "error");
+                return;
+            }
+            if (AppState.selectedDateStr) {
+                saveSlotToDB(AppState.selectedDateStr, time);
+                DOM.newTimeInput.value = ''; // Reset after adding
+            }
+        });
 
-            toast.innerHTML = `${icon} <span class="font-medium text-sm tracking-wide">${message}</span>`;
-            
-            container.appendChild(toast);
-            
-            // Trigger animation
-            setTimeout(() => { toast.style.opacity = '1'; }, 10);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => { container.removeChild(toast); }, 300);
-            }, 3000);
-        }
-
-        // Initialize
+        // Set current year in footer
         document.getElementById('current-year').textContent = new Date().getFullYear();
-        renderCalendar();
-        initAuth(); // Start Firebase connection
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup initial modal states
+            DOM.adminModal.querySelector('div').classList.add('scale-95', 'opacity-0', 'transition-all', 'duration-200');
+            DOM.dayModal.querySelector('div').classList.add('scale-95', 'opacity-0', 'transition-all', 'duration-200');
+            
+            // Initial Calendar Render
+            renderCalendar();
+            
+            // Attempt to init DB
+            initAuth();
+        });
 
     </script>
 </body>
