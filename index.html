@@ -461,10 +461,8 @@
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Environment variables handling for platform compatibility
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        
-        let firebaseConfig = {
+        // Firebase Configuration - Added directly from the snippet
+        const firebaseConfig = {
             apiKey: "AIzaSyBuWWnqDX5mUra5pF3uuBxEVSKjcESifTk",
             authDomain: "gawynt-hub.firebaseapp.com",
             databaseURL: "https://gawynt-hub-default-rtdb.firebaseio.com",
@@ -474,14 +472,6 @@
             appId: "1:330651852035:web:db931f867da21b6a519d36",
             measurementId: "G-XLXGTVSPXT"
         };
-        
-        if (typeof __firebase_config !== 'undefined') {
-            try {
-                firebaseConfig = JSON.parse(__firebase_config);
-            } catch (e) {
-                console.warn("Could not parse env firebase config, using fallback.");
-            }
-        }
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -537,16 +527,18 @@
         };
 
         // --- Database Logic ---
-        
-        const getCollectionRef = () => collection(db, 'artifacts', appId, 'public', 'data', 'calendar_schedule');
-        const getDocRef = (dateStr) => doc(db, 'artifacts', appId, 'public', 'data', 'calendar_schedule', dateStr);
+        // Refactored paths to save properly to the gawynt-hub project root instead of an artifact sandbox.
+        const getCollectionRef = () => collection(db, 'calendar_schedule');
+        const getDocRef = (dateStr) => doc(db, 'calendar_schedule', dateStr);
 
         async function initAuth() {
             try {
                 await signInAnonymously(auth);
                 listenToSchedule();
             } catch (error) {
-                console.warn("Firebase Auth Warning: Falling back to local schedule.");
+                // Log the exact error if Anonymous Auth isn't enabled in the Gawynt Hub console
+                console.error("Firebase Auth Error - Please make sure Anonymous Auth is enabled in gawynt-hub:", error);
+                console.warn("Falling back to local schedule.");
                 listenToSchedule();
             }
         }
@@ -569,7 +561,7 @@
                     renderDayModalContent(AppState.selectedDateStr);
                 }
             }, (error) => {
-                console.warn("Firestore Database Warning: Falling back to local offline mode.");
+                console.warn("Firestore Database Warning: Falling back to local offline mode.", error);
                 
                 AppState.isLocalMode = true;
                 const localData = localStorage.getItem('premium_walks_schedule');
@@ -611,6 +603,7 @@
                 await setDoc(getDocRef(dateStr), { times: newTimes });
                 showToast("Time slot added.", "success");
             } catch (e) {
+                console.error("Firestore Write Error:", e);
                 AppState.isLocalMode = true;
                 AppState.scheduleData[dateStr] = newTimes;
                 localStorage.setItem('premium_walks_schedule', JSON.stringify(AppState.scheduleData));
@@ -647,6 +640,7 @@
                 }
                 showToast("Time slot removed.", "success");
             } catch (e) {
+                console.error("Firestore Write Error:", e);
                 AppState.isLocalMode = true;
                 if (newTimes.length === 0) {
                     delete AppState.scheduleData[dateStr];
