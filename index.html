@@ -423,7 +423,7 @@
         </div>
     </div>
 
-    <!-- 3. Admin Dashboard Modal (Added per requirements) -->
+    <!-- 3. Admin Dashboard Modal -->
     <div id="admin-dashboard-modal" class="fixed inset-0 z-50 hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all flex flex-col">
             <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
@@ -466,9 +466,10 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // FIX: Added deleteDoc to properly remove documents rather than just leaving them empty
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration - Added directly from the snippet
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBuWWnqDX5mUra5pF3uuBxEVSKjcESifTk",
             authDomain: "gawynt-hub.firebaseapp.com",
@@ -480,9 +481,10 @@
             measurementId: "G-XLXGTVSPXT"
         };
 
-        // Initialize Firebase
+        // Initialize Firebase safely incase adblockers block analytics
         const app = initializeApp(firebaseConfig);
-        const analytics = getAnalytics(app); 
+        let analytics;
+        try { analytics = getAnalytics(app); } catch(e) { console.warn("Analytics blocked by browser"); }
         const auth = getAuth(app);
         const db = getFirestore(app);
 
@@ -534,7 +536,6 @@
         };
 
         // --- Database Logic ---
-        // Refactored paths to save properly to the gawynt-hub project root instead of an artifact sandbox.
         const getCollectionRef = () => collection(db, 'calendar_schedule');
         const getDocRef = (dateStr) => doc(db, 'calendar_schedule', dateStr);
 
@@ -543,7 +544,6 @@
                 await signInAnonymously(auth);
                 listenToSchedule();
             } catch (error) {
-                // Log the exact error if Anonymous Auth isn't enabled in the Gawynt Hub console
                 console.error("Firebase Auth Error - Please make sure Anonymous Auth is enabled in gawynt-hub:", error);
                 console.warn("Falling back to local schedule.");
                 listenToSchedule();
@@ -591,30 +591,38 @@
             
             const currentTimes = AppState.scheduleData[dateStr] || [];
             if (currentTimes.includes(timeStr)) {
-                showToast("Time slot already exists.");
+                showToast("Time slot already exists.", "info");
                 return;
             }
 
             const newTimes = [...currentTimes, timeStr].sort();
             
-            // FIX: Removed the 'if(AppState.isLocalMode)' block that was preventing writing to Firebase
-            // Now it will ALWAYS try to push to the database, even if it threw an error on load.
+            // FIX: Force optimistic UI update immediately before awaiting DB
+            AppState.scheduleData[dateStr] = newTimes;
+            renderCalendar();
+            if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
+            
             try {
-                await setDoc(getDocRef(dateStr), { times: newTimes });
-                showToast("Time slot added.", "success");
-                
-                // Immediately update the local state for better responsiveness
-                AppState.scheduleData[dateStr] = newTimes;
-                renderCalendar();
-                if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
+                // FIX: Added { merge: true } to prevent rules from rejecting an overwrite if document holds other data
+                await setDoc(getDocRef(dateStr), { times: newTimes }, { merge: true });
+                showToast("Time slot saved to database.", "success");
             } catch (e) {
                 console.error("Firestore Write Error:", e);
+                
+                // FIX: If DB rejects the write, unsubscribe to stop it from flickering/deleting our local change
+                if(AppState.unsubscribeDB) {
+                    AppState.unsubscribeDB();
+                    AppState.unsubscribeDB = null;
+                }
+                
                 AppState.isLocalMode = true;
                 AppState.scheduleData[dateStr] = newTimes;
                 localStorage.setItem('premium_walks_schedule', JSON.stringify(AppState.scheduleData));
+                
                 renderCalendar();
                 if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
-                showToast("Saved locally (Offline Mode).", "success");
+                // FIX: Clear error text to explain why it failed
+                showToast("DB Error: Saved locally. Check Firebase Console Rules.", "error");
             }
         }
 
@@ -624,25 +632,31 @@
             const currentTimes = AppState.scheduleData[dateStr] || [];
             const newTimes = currentTimes.filter(t => t !== timeStr);
 
-            // FIX: Removed the 'if(AppState.isLocalMode)' block that was preventing DB deletion.
+            // FIX: Force optimistic UI update immediately
+            if (newTimes.length === 0) {
+                delete AppState.scheduleData[dateStr];
+            } else {
+                AppState.scheduleData[dateStr] = newTimes;
+            }
+            renderCalendar();
+            if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
+
             try {
+                // FIX: Properly delete the document if array is empty
                 if (newTimes.length === 0) {
-                    await setDoc(getDocRef(dateStr), { times: [] });
+                    await deleteDoc(getDocRef(dateStr));
                 } else {
-                    await setDoc(getDocRef(dateStr), { times: newTimes });
+                    await setDoc(getDocRef(dateStr), { times: newTimes }, { merge: true });
                 }
-                showToast("Time slot removed.", "success");
-                
-                // Immediately update the local state for better responsiveness
-                if (newTimes.length === 0) {
-                    delete AppState.scheduleData[dateStr];
-                } else {
-                    AppState.scheduleData[dateStr] = newTimes;
-                }
-                renderCalendar();
-                if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
+                showToast("Time slot removed from database.", "success");
             } catch (e) {
                 console.error("Firestore Write Error:", e);
+                
+                if(AppState.unsubscribeDB) {
+                    AppState.unsubscribeDB();
+                    AppState.unsubscribeDB = null;
+                }
+
                 AppState.isLocalMode = true;
                 if (newTimes.length === 0) {
                     delete AppState.scheduleData[dateStr];
@@ -650,9 +664,10 @@
                     AppState.scheduleData[dateStr] = newTimes;
                 }
                 localStorage.setItem('premium_walks_schedule', JSON.stringify(AppState.scheduleData));
+                
                 renderCalendar();
                 if (AppState.selectedDateStr === dateStr) renderDayModalContent(dateStr);
-                showToast("Removed locally (Offline Mode).", "success");
+                showToast("Removed locally. Check Firebase Console Rules.", "error");
             }
         }
 
@@ -794,18 +809,15 @@
                         bookBtn.className = 'text-sm font-semibold bg-white border border-gray-200 px-4 py-2 rounded-lg text-gray-900 hover:bg-gray-900 hover:text-white transition-colors cursor-pointer';
                         bookBtn.textContent = 'Select Time';
                         
-                        // Modified to implement step-by-step flow 
                         bookBtn.onclick = () => {
                             closeAllModals();
                             
-                            // Auto-fill new date and time inputs
                             const dateInput = document.getElementById('form-date');
                             if(dateInput) dateInput.value = dateStr;
                             
                             const timeInput = document.getElementById('form-time');
                             if(timeInput) timeInput.value = formatTimeDisplay(time);
 
-                            // Scroll automatically to Payment section
                             document.getElementById('payment').scrollIntoView({behavior: 'smooth'});
                             showToast(`Time selected. Please choose a payment method.`, 'info');
                         };
@@ -861,25 +873,21 @@
 
         // --- UI Flow Event Listeners ---
 
-        // 1. Plan Selection
         document.querySelectorAll('.plan-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const plan = e.currentTarget.getAttribute('data-plan');
                 document.getElementById('form-plan').value = plan;
                 
-                // Scroll to calendar
                 document.getElementById('calendar').scrollIntoView({ behavior: 'smooth' });
                 showToast(`${plan} selected. Please pick a date on the calendar.`, 'info');
             });
         });
 
-        // 2. Payment Selection
         document.querySelectorAll('.payment-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const method = e.currentTarget.getAttribute('data-payment');
                 document.getElementById('form-payment').value = method;
                 
-                // Scroll to contact form
                 document.getElementById('contact').scrollIntoView({ behavior: 'smooth' });
                 showToast(`${method} payment selected. Please finalize your details.`, 'info');
             });
@@ -907,14 +915,12 @@
             }
         });
 
-        // Add Enter key listener for the password field
         DOM.adminPwdInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 DOM.btnVerifyAdmin.click();
             }
         });
 
-        // Legacy Hidden Entry (Main Title 5-clicks)
         let titleClicks = 0;
         let clickTimer;
         DOM.title.addEventListener('click', () => {
@@ -925,7 +931,6 @@
                 DOM.adminError.classList.add('hidden');
                 DOM.adminPwdInput.value = '';
                 
-                // FIX: Reveal the inner modal box and focus input
                 setTimeout(() => {
                     DOM.adminModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
                     DOM.adminModal.querySelector('div').classList.add('scale-100');
@@ -937,7 +942,6 @@
             clickTimer = setTimeout(() => { titleClicks = 0; }, 2000);
         });
 
-        // NEW: Double Tap / Double Click on Calendar Title
         let calTitleClicks = 0;
         let calClickTimer;
         if (DOM.calendarTitle) {
@@ -946,19 +950,16 @@
                 clearTimeout(calClickTimer);
                 if (calTitleClicks >= 2) {
                     if (AppState.isAdmin) {
-                        // Already admin, open the dashboard directly
                         DOM.adminDashboardModal.classList.remove('hidden');
                         setTimeout(() => {
                             DOM.adminDashboardModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
                             DOM.adminDashboardModal.querySelector('div').classList.add('scale-100');
                         }, 10);
                     } else {
-                        // Ask for password
                         DOM.adminModal.classList.remove('hidden');
                         DOM.adminError.classList.add('hidden');
                         DOM.adminPwdInput.value = '';
                         
-                        // FIX: Reveal the inner modal box and focus input
                         setTimeout(() => {
                             DOM.adminModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
                             DOM.adminModal.querySelector('div').classList.add('scale-100');
@@ -967,22 +968,18 @@
                     }
                     calTitleClicks = 0;
                 }
-                // Reset after 400ms (typical double tap window)
                 calClickTimer = setTimeout(() => { calTitleClicks = 0; }, 400);
             });
         }
 
-        // Verify Admin Password
         DOM.btnVerifyAdmin.addEventListener('click', () => {
             const pwd = DOM.adminPwdInput.value;
-            // Supports both legacy password and new requested password
             if (pwd === 'walksdog99' || pwd === 'Greenshark!0220317') {
                 AppState.isAdmin = true;
                 DOM.adminControls.classList.remove('hidden');
                 closeAllModals();
                 showToast("Admin access granted", "success");
 
-                // Immediately open the new Admin Dashboard
                 setTimeout(() => {
                     DOM.adminDashboardModal.classList.remove('hidden');
                     setTimeout(() => {
@@ -1006,7 +1003,6 @@
             }
         });
 
-        // Dashboard Buttons actions
         if (DOM.btnOpenDashboard) {
             DOM.btnOpenDashboard.addEventListener('click', () => {
                 DOM.adminDashboardModal.classList.remove('hidden');
@@ -1028,7 +1024,7 @@
                 }
                 
                 saveSlotToDB(dateStr, timeStr);
-                DOM.dashTimeInput.value = ''; // clear time field for easy multi-entry
+                DOM.dashTimeInput.value = ''; 
             });
         }
 
@@ -1046,9 +1042,7 @@
 
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
-        // Initialize App & Run force-scroll to top
         document.addEventListener('DOMContentLoaded', () => {
-            // FIX: Double-enforcing immediate jump to the top on load
             window.scrollTo(0, 0);
             setTimeout(() => window.scrollTo(0, 0), 10);
             setTimeout(() => window.scrollTo(0, 0), 100);
