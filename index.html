@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bankview Upper mount royal lower month Royal south Calgary and Marda loop Dog walking services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            900: '#111827',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Styles for aesthetics and specific component behaviors */
+        body {
+            background-color: #ffffff;
+            color: #1a1a1a;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Hide scrollbar for cleaner look in modals */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .card-shadow {
+            box-shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .card-shadow:hover {
+            box-shadow: 0 10px 32px -8px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            transition: all 0.2s ease;
+        }
+        
+        .calendar-day:hover:not(.empty-day) {
+            background-color: #f3f4f6;
+            cursor: pointer;
+        }
+
+        /* Modern Input Styling */
+        .modern-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            background-color: #f9fafb;
+            transition: all 0.2s;
+            outline: none;
+        }
+        .modern-input:focus {
+            border-color: #111827;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.05);
+        }
+
+        /* Toast notification */
+        #toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .toast {
+            background: #111827;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s forwards;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-gray-200">
+
+    <!-- Navigation / Header -->
+    <nav class="fixed w-full top-0 z-40 glass-effect">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex-shrink-0 flex items-center">
+                    <i class="fa-solid fa-paw text-2xl mr-3 text-gray-800"></i>
+                    <span class="font-bold text-xl tracking-tight hidden sm:block">Premium Walks</span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#services" class="text-gray-500 hover:text-gray-900 font-medium transition-colors">Services</a>
+                    <a href="#calendar" class="text-gray-500 hover:text-gray-900 font-medium transition-colors">Schedule</a>
+                    <a href="#payment" class="text-gray-500 hover:text-gray-900 font-medium transition-colors">Payment</a>
+                    <a href="#contact" class="text-gray-500 hover:text-gray-900 font-medium transition-colors">Contact</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center animate-slide-up">
+            <div class="max-w-4xl mx-auto">
+                <p class="text-sm font-semibold tracking-widest text-gray-400 uppercase mb-4">Professional Dog Walking</p>
+                <!-- Title with hidden admin trigger -->
+                <h1 id="main-title" class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 mb-8 leading-tight select-none cursor-default">
+                    Bankview, Upper Mount Royal, Lower Mount Royal, South Calgary & Marda Loop <br>
+                    <span class="text-gray-400 font-light">Dog Walking Services</span>
+                </h1>
+                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto mb-10">
+                    Providing exceptional, reliable, and caring walks for your best friend in Calgary's premier neighborhoods.
+                </p>
+                <div class="flex justify-center gap-4">
+                    <a href="#calendar" class="bg-gray-900 text-white px-8 py-4 rounded-full font-medium hover:bg-gray-800 transition-colors shadow-lg hover:shadow-xl">
+                        View Schedule
+                    </a>
+                    <a href="#contact" class="bg-white text-gray-900 border border-gray-200 px-8 py-4 rounded-full font-medium hover:bg-gray-50 transition-colors shadow-sm">
+                        Book Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services Section -->
+    <section id="services" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Our Walking Plans</h2>
+                <p class="text-gray-500 max-w-2xl mx-auto">Simple, transparent pricing to keep your dog happy and healthy.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <!-- Weekly Plan -->
+                <div class="bg-white rounded-3xl p-10 card-shadow border border-gray-100 flex flex-col h-full relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-5">
+                        <i class="fa-solid fa-dog text-9xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Weekly Plan</h3>
+                    <p class="text-gray-500 mb-6">Perfect for occasional walks or setting a flexible routine.</p>
+                    <div class="my-6">
+                        <span class="text-5xl font-extrabold text-gray-900">$35</span>
+                        <span class="text-gray-500 font-medium">/ week</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-grow text-gray-600">
+                    </ul>
+                    <a href="#contact" class="block w-full text-center bg-gray-50 hover:bg-gray-100 text-gray-900 font-semibold py-4 rounded-xl transition-colors border border-gray-200">
+                        Choose Weekly
+                    </a>
+                </div>
+
+                <!-- Monthly Plan -->
+                <div class="bg-gray-900 rounded-3xl p-10 card-shadow text-white flex flex-col h-full relative overflow-hidden transform md:-translate-y-4">
+                    <div class="absolute top-0 right-0 p-6 opacity-10">
+                        <i class="fa-solid fa-bone text-9xl"></i>
+                    </div>
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gray-400 to-white opacity-20"></div>
+                    <div class="inline-block bg-white/10 rounded-full px-3 py-1 text-sm font-semibold mb-4 w-fit backdrop-blur-sm border border-white/10">Best Value</div>
+                    <h3 class="text-2xl font-bold mb-2">Monthly Plan</h3>
+                    <p class="text-gray-400 mb-6">Comprehensive care for the busy pet parent.</p>
+                    <div class="my-6">
+                        <span class="text-5xl font-extrabold">$90</span>
+                        <span class="text-gray-400 font-medium">/ month</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-grow text-gray-300">
+                    </ul>
+                    <a href="#contact" class="block w-full text-center bg-white text-gray-900 hover:bg-gray-100 font-semibold py-4 rounded-xl transition-colors">
+                        Choose Monthly
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calendar Section -->
+    <section id="calendar" class="py-24 bg-white relative">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            
+            <div class="flex flex-col md:flex-row justify-between items-end mb-10">
+                <div>
+                    <h2 class="text-4xl font-extrabold text-gray-900 mb-2">Calendar</h2>
+                    <p class="text-gray-500">Live availability. Tap any date to view open times.</p>
+                </div>
+                
+                <!-- Admin Controls (Hidden by default) -->
+                <div id="admin-controls" class="hidden mt-4 md:mt-0 flex items-center bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-2 rounded-lg text-sm font-medium">
+                    <i class="fa-solid fa-user-shield mr-2"></i> Admin Mode Active
+                    <button id="btn-logout" class="ml-4 text-gray-500 hover:text-gray-900 underline">Exit</button>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-3xl card-shadow overflow-hidden">
+                <!-- Calendar Header -->
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h3 id="month-display" class="text-lg font-bold text-gray-900 uppercase tracking-wide"></h3>
+                    <div class="flex space-x-2">
+                        <button id="btn-prev-month" class="p-2 rounded-full hover:bg-gray-200 text-gray-600 transition-colors">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <button id="btn-next-month" class="p-2 rounded-full hover:bg-gray-200 text-gray-600 transition-colors">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div class="p-6">
+                    <div class="grid grid-cols-7 gap-2 mb-2">
+                        <div class="text-center text-xs font-semibold text-gray-400 uppercase">Sun</div>
+                        <div class="text-center text-xs font-semibold text-gray-400 uppercase">Mon</div>
+                        <div class="text-center text-xs font-semibold text-gray-400 uppercase">Tue</div>
+                        <div class="text-center text-xs font-semibold text-gray-400 uppercase">Wed</div>
+                        <div class="text-center text-xs font-semibold text-gray-400 uppercase">Thu</div>
+                        <div class="text-center text-xs font-semibold text-gray-400 uppercase">Fri</div>
+                        <div class="text-center text-xs font-semibold text-gray-400 uppercase">Sat</div>
+                    </div>
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-2 lg:gap-4">
+                        <!-- Days injected here via JS -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex items-center justify-center space-x-6 text-sm text-gray-500">
+                <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-black mr-2"></span> Times Available</div>
+                <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-gray-200 mr-2"></span> Fully Booked</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Payment Info Section -->
+    <section id="payment" class="py-20 bg-gray-50 border-t border-gray-100">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h2 class="text-3xl font-bold text-gray-900 mb-8">Payment Methods</h2>
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-8 mb-8">
+                <div class="bg-white px-8 py-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center min-w-[200px]">
+                    <i class="fa-solid fa-money-bill-transfer text-3xl text-gray-800 mr-4"></i>
+                    <span class="text-xl font-semibold text-gray-900">E-transfer</span>
+                </div>
+                <div class="bg-white px-8 py-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center min-w-[200px]">
+                    <i class="fa-brands fa-nfc-symbol text-3xl text-gray-800 mr-4"></i>
+                    <span class="text-xl font-semibold text-gray-900">Tap to Pay</span>
+                </div>
+            </div>
+            <div class="inline-block bg-gray-900 text-white px-6 py-3 rounded-xl shadow-lg mt-4">
+                <p class="font-medium tracking-wide">
+                    <i class="fa-solid fa-circle-exclamation mr-2 text-yellow-400"></i>
+                    We take payment 0-2 hour before the walk
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Form Section -->
+    <section id="contact" class="py-24 bg-white">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Book a Walk</h2>
+                <p class="text-gray-500">Fill out the form below and we'll get back to you to confirm the details.</p>
+            </div>
+
+            <form action="https://formspree.io/f/moevvbod" method="POST" class="bg-white p-8 md:p-10 rounded-3xl card-shadow border border-gray-100 space-y-6">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Pet Name *</label>
+                        <input type="text" name="Pet Name" required class="modern-input" placeholder="e.g. Max">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Your Name *</label>
+                        <input type="text" name="Your Name" required class="modern-input" placeholder="John Doe">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Your Phone Number *</label>
+                        <input type="tel" name="Phone Number" required class="modern-input" placeholder="(123) 456-7890">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Your Email *</label>
+                        <input type="email" name="Email" required class="modern-input" placeholder="john@example.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Any special note or instructions?</label>
+                    <textarea name="Instructions" rows="4" class="modern-input resize-none" placeholder="Allergies, behavior quirks, preferred dates..."></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-gray-800 transition-colors shadow-md mt-4">
+                    Send Request
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 py-10 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 text-center text-gray-500 text-sm font-medium">
+            &copy; <span id="current-year"></span> Premium Walks. Calgary, AB.
+        </div>
+    </footer>
+
+    <!-- Modals Container -->
+
+    <!-- 1. Admin Password Modal -->
+    <div id="admin-modal" class="fixed inset-0 z-50 hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl transform transition-all">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-gray-900">Admin Access</h3>
+                    <button class="close-modal text-gray-400 hover:text-gray-900"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
+                <p class="text-sm text-gray-500 mb-4">Please enter the admin password to modify the schedule.</p>
+                <input type="password" id="admin-password-input" class="modern-input mb-4" placeholder="Password">
+                <p id="admin-error" class="text-red-500 text-xs mb-4 hidden">Incorrect password.</p>
+                <button id="btn-verify-admin" class="w-full bg-black text-white font-semibold py-3 rounded-xl hover:bg-gray-800">
+                    Login
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Day Schedule Modal (View & Edit combined based on state) -->
+    <div id="day-modal" class="fixed inset-0 z-50 hidden bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden shadow-2xl transform transition-all flex flex-col max-h-[90vh]">
+            
+            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 id="modal-date-title" class="text-xl font-bold text-gray-900">Date</h3>
+                <button class="close-modal text-gray-400 hover:text-gray-900 bg-white rounded-full p-2 shadow-sm border border-gray-100">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto no-scrollbar flex-grow">
+                <div id="slots-container" class="space-y-3">
+                    <!-- Timeslots injected here -->
+                </div>
+                <div id="empty-slots-msg" class="text-center text-gray-500 py-8 hidden">
+                    <i class="fa-regular fa-calendar-xmark text-4xl mb-3 text-gray-300"></i>
+                    <p>No available times for this date.</p>
+                </div>
+
+                <!-- Admin Add Time Section (Hidden if not admin) -->
+                <div id="admin-add-section" class="hidden mt-8 pt-6 border-t border-gray-100">
+                    <h4 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4"><i class="fa-solid fa-plus-circle mr-2"></i>Add Time Slot</h4>
+                    <div class="flex gap-2">
+                        <input type="time" id="new-time-input" class="modern-input flex-grow">
+                        <button id="btn-add-time" class="bg-black text-white px-6 rounded-xl font-medium hover:bg-gray-800 transition-colors shadow-sm">
+                            Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Environment variables handling for platform compatibility
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        
+        // Fallback to user provided config if environment config is missing
+        let firebaseConfig = {
+            apiKey: "AIzaSyBuWWnqDX5mUra5pF3uuBxEVSKjcESifTk",
+            authDomain: "gawynt-hub.firebaseapp.com",
+            databaseURL: "https://gawynt-hub-default-rtdb.firebaseio.com",
+            projectId: "gawynt-hub",
+            storageBucket: "gawynt-hub.firebasestorage.app",
+            messagingSenderId: "330651852035",
+            appId: "1:330651852035:web:db931f867da21b6a519d36",
+            measurementId: "G-XLXGTVSPXT"
+        };
+        
+        if (typeof __firebase_config !== 'undefined') {
+            try {
+                firebaseConfig = JSON.parse(__firebase_config);
+            } catch (e) {
+                console.warn("Could not parse env firebase config, using fallback.");
+            }
+        }
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Application State
+        const AppState = {
+            isAdmin: false,
+            currentDate: new Date(),
+            scheduleData: {}, // Format: { "YYYY-MM-DD": ["09:00", "14:00"] }
+            selectedDateStr: null, // "YYYY-MM-DD" of currently viewed modal
+            unsubscribeDB: null
+        };
+
+        // DOM Elements
+        const DOM = {
+            title: document.getElementById('main-title'),
+            calendarSection: document.getElementById('calendar'),
+            monthDisplay: document.getElementById('month-display'),
+            calendarGrid: document.getElementById('calendar-grid'),
+            btnPrevMonth: document.getElementById('btn-prev-month'),
+            btnNextMonth: document.getElementById('btn-next-month'),
+            
+            // Admin Modal
+            adminModal: document.getElementById('admin-modal'),
+            adminPwdInput: document.getElementById('admin-password-input'),
+            btnVerifyAdmin: document.getElementById('btn-verify-admin'),
+            adminError: document.getElementById('admin-error'),
+            adminControls: document.getElementById('admin-controls'),
+            btnLogout: document.getElementById('btn-logout'),
+
+            // Day Modal
+            dayModal: document.getElementById('day-modal'),
+            modalDateTitle: document.getElementById('modal-date-title'),
+            slotsContainer: document.getElementById('slots-container'),
+            emptySlotsMsg: document.getElementById('empty-slots-msg'),
+            adminAddSection: document.getElementById('admin-add-section'),
+            newTimeInput: document.getElementById('new-time-input'),
+            btnAddTime: document.getElementById('btn-add-time'),
+            
+            closeModals: document.querySelectorAll('.close-modal')
+        };
+
+        // --- Database Logic ---
+        
+        const getCollectionRef = () => collection(db, 'artifacts', appId, 'public', 'data', 'calendar_schedule');
+        const getDocRef = (dateStr) => doc(db, 'artifacts', appId, 'public', 'data', 'calendar_schedule', dateStr);
+
+        async function initAuth() {
+            try {
+                // Rule 3: Auth before queries
+                await signInAnonymously(auth);
+                console.log("Authenticated with Firebase");
+                listenToSchedule();
+            } catch (error) {
+                console.error("Firebase Auth Error:", error);
+                showToast("Could not connect to live schedule.", "error");
+            }
+        }
+
+        function listenToSchedule() {
+            if (AppState.unsubscribeDB) AppState.unsubscribeDB();
+
+            const q = query(getCollectionRef());
+            
+            // Rule 2 & Mandatory Callback: Simple query, success & error callbacks
+            AppState.unsubscribeDB = onSnapshot(q, (snapshot) => {
+                const newData = {};
+                snapshot.forEach((doc) => {
+                    newData[doc.id] = doc.data().times || [];
+                });
+                AppState.scheduleData = newData;
+                renderCalendar();
+                
+                // If day modal is open, refresh its contents
+                if (AppState.selectedDateStr && !DOM.dayModal.classList.contains('hidden')) {
+                    renderDayModalContent(AppState.selectedDateStr);
+                }
+            }, (error) => {
+                console.error("Firestore Listen Error:", error);
+            });
+        }
+
+        async function saveSlotToDB(dateStr, timeStr) {
+            if (!AppState.isAdmin) return;
+            
+            const currentTimes = AppState.scheduleData[dateStr] || [];
+            if (currentTimes.includes(timeStr)) {
+                showToast("Time slot already exists.");
+                return;
+            }
+
+            const newTimes = [...currentTimes, timeStr].sort();
+            
+            try {
+                await setDoc(getDocRef(dateStr), { times: newTimes });
+                showToast("Time slot added.");
+            } catch (e) {
+                console.error("Error saving slot:", e);
+                showToast("Failed to save.", "error");
+            }
+        }
+
+        async function deleteSlotFromDB(dateStr, timeStr) {
+            if (!AppState.isAdmin) return;
+
+            const currentTimes = AppState.scheduleData[dateStr] || [];
+            const newTimes = currentTimes.filter(t => t !== timeStr);
+
+            try {
+                if (newTimes.length === 0) {
+                    // Empty array, still save it to keep the document structure, or could delete doc.
+                    // Saving empty array is safer for keeping history.
+                    await setDoc(getDocRef(dateStr), { times: [] });
+                } else {
+                    await setDoc(getDocRef(dateStr), { times: newTimes });
+                }
+                showToast("Time slot removed.");
+            } catch (e) {
+                console.error("Error removing slot:", e);
+                showToast("Failed to remove.", "error");
+            }
+        }
+
+        // --- Calendar Logic ---
+
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        function renderCalendar() {
+            const year = AppState.currentDate.getFullYear();
+            const month = AppState.currentDate.getMonth();
+            
+            DOM.monthDisplay.textContent = `${monthNames[month]} ${year}`;
+            DOM.calendarGrid.innerHTML = '';
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const today = new Date();
+            const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
+            const currentDay = today.getDate();
+
+            // Empty cells for days before the 1st
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day empty-day rounded-2xl bg-transparent';
+                DOM.calendarGrid.appendChild(emptyCell);
+            }
+
+            // Actual days
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const slots = AppState.scheduleData[dateStr] || [];
+                const hasSlots = slots.length > 0;
+                const isPast = isCurrentMonth && day < currentDay;
+
+                const dayCell = document.createElement('div');
+                
+                // Base styling
+                let classes = 'calendar-day rounded-2xl flex flex-col items-center justify-center relative border border-transparent';
+                
+                if (isPast) {
+                    classes += ' text-gray-300 bg-gray-50/50 cursor-not-allowed';
+                } else {
+                    classes += ' text-gray-700 font-medium hover:border-gray-200';
+                    if (year === today.getFullYear() && month === today.getMonth() && day === currentDay) {
+                        // Highlight today
+                        classes += ' bg-gray-900 text-white hover:bg-gray-800';
+                    } else if (hasSlots) {
+                        classes += ' bg-white shadow-sm border-gray-100';
+                    } else {
+                        classes += ' bg-gray-50';
+                    }
+                }
+
+                dayCell.className = classes;
+                
+                // Day Number
+                const daySpan = document.createElement('span');
+                daySpan.textContent = day;
+                if (year === today.getFullYear() && month === today.getMonth() && day === currentDay) {
+                    daySpan.className = 'font-bold text-lg';
+                }
+                dayCell.appendChild(daySpan);
+
+                // Indicator dot for available slots (only if future/today)
+                if (!isPast && hasSlots && !(year === today.getFullYear() && month === today.getMonth() && day === currentDay)) {
+                    const dot = document.createElement('div');
+                    dot.className = 'absolute bottom-2 w-1.5 h-1.5 rounded-full bg-black';
+                    dayCell.appendChild(dot);
+                }
+
+                // Interaction
+                if (!isPast) {
+                    dayCell.addEventListener('click', () => openDayModal(dateStr));
+                }
+
+                DOM.calendarGrid.appendChild(dayCell);
+            }
+        }
+
+        // --- Modal & UI Logic ---
+
+        function formatTimeDisplay(time24) {
+            const [h, m] = time24.split(':');
+            let hours = parseInt(h);
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            return `${hours}:${m} ${ampm}`;
+        }
+
+        function openDayModal(dateStr) {
+            AppState.selectedDateStr = dateStr;
+            const [y, m, d] = dateStr.split('-');
+            const dateObj = new Date(y, parseInt(m)-1, d);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            
+            DOM.modalDateTitle.textContent = dateObj.toLocaleDateString('en-US', options);
+            renderDayModalContent(dateStr);
+            
+            // Toggle Admin sections
+            if (AppState.isAdmin) {
+                DOM.adminAddSection.classList.remove('hidden');
+                DOM.newTimeInput.value = ''; // Reset input
+            } else {
+                DOM.adminAddSection.classList.add('hidden');
+            }
+
+            DOM.dayModal.classList.remove('hidden');
+            // Small delay for transition
+            setTimeout(() => {
+                DOM.dayModal.querySelector('div').classList.add('scale-100');
+                DOM.dayModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function renderDayModalContent(dateStr) {
+            const slots = AppState.scheduleData[dateStr] || [];
+            DOM.slotsContainer.innerHTML = '';
+
+            if (slots.length === 0) {
+                DOM.emptySlotsMsg.classList.remove('hidden');
+            } else {
+                DOM.emptySlotsMsg.classList.add('hidden');
+                
+                // Sort times
+                slots.sort();
+
+                slots.forEach(time => {
+                    const slotDiv = document.createElement('div');
+                    slotDiv.className = 'flex justify-between items-center bg-gray-50 border border-gray-100 p-4 rounded-xl';
+                    
+                    const timeSpan = document.createElement('span');
+                    timeSpan.className = 'font-semibold text-gray-900 text-lg tracking-tight';
+                    timeSpan.innerHTML = `<i class="fa-regular fa-clock text-gray-400 mr-2 text-sm"></i> ${formatTimeDisplay(time)}`;
+                    slotDiv.appendChild(timeSpan);
+
+                    if (AppState.isAdmin) {
+                        const delBtn = document.createElement('button');
+                        delBtn.className = 'text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors';
+                        delBtn.innerHTML = '<i class="fa-solid fa-trash-can"></i>';
+                        delBtn.onclick = () => deleteSlotFromDB(dateStr, time);
+                        slotDiv.appendChild(delBtn);
+                    } else {
+                        const bookBtn = document.createElement('a');
+                        bookBtn.href = '#contact';
+                        bookBtn.className = 'text-sm font-semibold text-black hover:underline';
+                        bookBtn.textContent = 'Select';
+                        bookBtn.onclick = () => {
+                            closeAllModals();
+                            // Pre-fill instructions optionally
+                            document.querySelector('textarea[name="Instructions"]').value = `Interested in booking the ${formatTimeDisplay(time)} slot on ${dateStr}.`;
+                        };
+                        slotDiv.appendChild(bookBtn);
+                    }
+
+                    DOM.slotsContainer.appendChild(slotDiv);
+                });
+            }
+        }
+
+        function closeAllModals() {
+            const modals = [DOM.adminModal, DOM.dayModal];
+            modals.forEach(m => {
+                const inner = m.querySelector('div');
+                inner.classList.add('scale-95', 'opacity-0');
+                inner.classList.remove('scale-100');
+                setTimeout(() => {
+                    m.classList.add('hidden');
+                }, 200); // Wait for transition
+            });
+            DOM.adminError.classList.add('hidden');
+            DOM.adminPwdInput.value = '';
+            AppState.selectedDateStr = null;
+        }
+
+        // Custom Double Tap Logic for Header
+        let lastTap = 0;
+        DOM.title.addEventListener('click', function (e) {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTap;
+            if (tapLength < 500 && tapLength > 0) {
+                // Double tap detected
+                if (!AppState.isAdmin) {
+                    DOM.adminModal.classList.remove('hidden');
+                }
+                e.preventDefault();
+            }
+            lastTap = currentTime;
+        });
+
+        // Custom Double Tap Logic for Calendar
+        let lastCalendarTap = 0;
+        DOM.calendarSection.addEventListener('click', function (e) {
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastCalendarTap;
+            if (tapLength < 500 && tapLength > 0) {
+                // Double tap detected on the calendar section
+                if (!AppState.isAdmin) {
+                    DOM.adminModal.classList.remove('hidden');
+                }
+                // Do not prevent default here so day clicks continue to function if needed
+            }
+            lastCalendarTap = currentTime;
+        });
+
+
+        // Event Listeners
+        DOM.btnPrevMonth.addEventListener('click', () => {
+            AppState.currentDate.setMonth(AppState.currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+
+        DOM.btnNextMonth.addEventListener('click', () => {
+            AppState.currentDate.setMonth(AppState.currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        DOM.closeModals.forEach(btn => {
+            btn.addEventListener('click', closeAllModals);
+        });
+
+        // Close modal on outside click
+        window.addEventListener('click', (e) => {
+            if (e.target === DOM.adminModal || e.target === DOM.dayModal) {
+                closeAllModals();
+            }
+        });
+
+        // Admin Auth Flow
+        DOM.btnVerifyAdmin.addEventListener('click', () => {
+            const pwd = DOM.adminPwdInput.value;
+            // The requested specific password
+            if (pwd === "Greenshark!0220317") {
+                AppState.isAdmin = true;
+                closeAllModals();
+                DOM.adminControls.classList.remove('hidden');
+                renderCalendar(); // Re-render to attach admin events if needed, though they trigger on modal open
+                showToast("Admin mode enabled.", "success");
+            } else {
+                DOM.adminError.classList.remove('hidden');
+            }
+        });
+
+        DOM.btnLogout.addEventListener('click', () => {
+            AppState.isAdmin = false;
+            DOM.adminControls.classList.add('hidden');
+            renderCalendar();
+            showToast("Admin mode disabled.");
+        });
+
+        // Admin Add Time
+        DOM.btnAddTime.addEventListener('click', () => {
+            const timeVal = DOM.newTimeInput.value;
+            if (timeVal && AppState.selectedDateStr) {
+                saveSlotToDB(AppState.selectedDateStr, timeVal);
+            }
+        });
+
+        // Utility: Toast Notification
+        function showToast(message, type = 'default') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast flex items-center';
+            
+            let icon = '<i class="fa-solid fa-circle-info mr-3 text-blue-400"></i>';
+            if (type === 'success') icon = '<i class="fa-solid fa-circle-check mr-3 text-green-400"></i>';
+            if (type === 'error') icon = '<i class="fa-solid fa-circle-exclamation mr-3 text-red-400"></i>';
+
+            toast.innerHTML = `${icon} <span class="font-medium text-sm tracking-wide">${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => { toast.style.opacity = '1'; }, 10);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => { container.removeChild(toast); }, 300);
+            }, 3000);
+        }
+
+        // Initialize
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        renderCalendar();
+        initAuth(); // Start Firebase connection
+
+    </script>
+</body>
+</html>
